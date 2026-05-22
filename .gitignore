@@ -1,0 +1,35 @@
+# Local data and generated analysis files
+data/
+notebooks/
+references/
+*.zip
+*.gz
+*.csv
+*.tsv
+*.parquet
+*.pkl
+*.pickle
+*.joblib
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local Jekyll build output
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+Gemfile.lock
