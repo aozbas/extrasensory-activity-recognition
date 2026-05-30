@@ -70,7 +70,7 @@ I used a one-sided permutation test with 1,000 permutations and a significance l
   frameborder="0"
 ></iframe>
 
-Since the p-value is below 0.05, I reject the null hypothesis. In this dataset, active contexts have a higher mean phone accelerometer magnitude than stationary contexts, and the observed difference is unlikely under random reassignment of active and stationary labels. This is evidence of an association, not proof of causation.
+Since the p-value is below 0.05, we reject the null hypothesis. In this dataset, active contexts have a higher mean phone accelerometer magnitude than stationary contexts, and the observed difference is unlikely under random reassignment of active and stationary labels. This is evidence of an association, not proof of causation.
 
 ## Framing a Prediction Problem
 
