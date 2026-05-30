@@ -2,7 +2,7 @@
 
 **Activity Recognition from UCSD Phone and Watch Sensors**
 
-**Name(s):** To be added before final submission
+**Analysis by Alpaslan Selvili Ozbas**
 
 This project investigates whether smartphone and smartwatch telemetry can distinguish real-world human activity contexts. The analysis uses the UCSD ExtraSensory dataset, an in-the-wild mobile sensing dataset with minute-level examples from 60 users.
 
