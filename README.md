@@ -40,7 +40,34 @@ This distribution shows a major class imbalance: stationary activities, especial
 
 ## Assessment of Missingness
 
-This section will be completed for the final project. The missingness analysis will identify columns with non-trivial missingness, discuss whether at least one column may be NMAR, and use permutation tests to compare missingness patterns across other observed variables.
+I focused the missingness analysis on `location:log_diameter`, the location feature used in the baseline model. This column is missing in 34,434 of the 306,594 modeling rows, or 11.2% of the activity-labeled rows. Because this feature summarizes the spatial spread of location updates within a sensing window, missing values may occur when location services are unavailable, disabled, inaccurate, or not collected during that minute.
+
+At least some location-feature missingness may be `NMAR`: whether location is missing can plausibly depend on the unobserved true location context or user behavior, such as being indoors, choosing not to share location, or moving through places where GPS is unreliable. The permutation tests below do not prove or disprove NMAR; they test whether the missingness indicator is associated with other observed variables.
+
+| Activity context | Activity type | Rows | Missing rows | Missing rate |
+| --- | --- | ---: | ---: | ---: |
+| Walking | Active | 22,136 | 3,671 | 16.6% |
+| Standing | Stationary | 37,782 | 5,086 | 13.5% |
+| Sitting | Stationary | 136,356 | 14,419 | 10.6% |
+| Lying down | Stationary | 104,210 | 10,917 | 10.5% |
+| Running | Active | 1,090 | 86 | 7.9% |
+| Bicycling | Active | 5,020 | 255 | 5.1% |
+
+<iframe
+  src="assets/plots/missingness_location_log_diameter_by_activity.html"
+  width="100%"
+  height="520"
+  frameborder="0"
+></iframe>
+
+I ran two-sided permutation tests using the difference in missing rates as the test statistic.
+
+| Test | Group comparison | Observed difference | p-value | Conclusion |
+| --- | --- | ---: | ---: | --- |
+| Dependency test | Active rows minus stationary rows | 0.0327 | 0.0010 | Location missingness differs by activity type. |
+| Non-dependency test | 6 AM-noon rows minus all other rows | -0.0005 | 0.7393 | No meaningful missingness difference was detected for this time-of-day split. |
+
+The first test suggests that `location:log_diameter` missingness depends on observed activity type: active rows have a higher missing rate than stationary rows. The second test gives a useful contrast: the same missingness indicator does not appear to depend on whether the row was recorded between 6 AM and noon.
 
 ## Hypothesis Testing
 
