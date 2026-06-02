@@ -26,6 +26,12 @@ FORBIDDEN_PATTERNS = [
 FINAL_INCOMPLETE_PATTERNS = [
     "This section will be completed for the final project.",
     "will be completed for the final project",
+    "Current status: this analysis is still pending.",
+    "Current status: the final model has not been trained yet.",
+    "Current status: this analysis is still pending because it should use the final fitted model.",
+    "Planned but not yet run.",
+    "Planned but not yet trained.",
+    "Planned but depends on the final model.",
 ]
 
 
