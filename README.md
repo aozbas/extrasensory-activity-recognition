@@ -16,6 +16,20 @@ For the current analysis, I loaded all 60 user files from the primary ExtraSenso
 
 ## Data Cleaning and Exploratory Data Analysis
 
+I loaded the 60 compressed per-user `.csv.gz` files from the primary ExtraSensory archive and added a `uuid` column from each filename. The cleaning workflow keeps the selected activity-label columns, parses the Unix `timestamp` column into a datetime, and creates a single engineered response column named `activity_context`. Rows with no selected activity label are excluded from the prediction dataset. In this selected label set, no rows had multiple selected activity labels, so no rows needed to be dropped for target ambiguity.
+
+The selected numeric sensor fields already use standard missing values, so I kept missing sensor readings as `NaN` rather than replacing them with artificial constants. The `label:*` columns are used only to construct the response variable and are excluded from the model feature set to avoid leakage.
+
+A small sample of the cleaned modeling table is shown below. The user identifier is shortened for readability.
+
+| user | timestamp | activity_context | activity_type | phone_accel_mean | phone_gyro_std | location_log_diameter | phone_app_active |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| 00EABED2 | 2015-10-05 21:06:01 | Sitting | Stationary | 0.997 | 0.002 | 2.313 | 0 |
+| 00EABED2 | 2015-10-05 21:07:01 | Sitting | Stationary | 0.997 | 0.001 | 2.263 | 1 |
+| 00EABED2 | 2015-10-05 21:08:01 | Sitting | Stationary | 0.997 | 0.002 | -0.565 | 1 |
+| 00EABED2 | 2015-10-05 21:09:01 | Sitting | Stationary | 0.997 | 0.002 | 0.741 | 1 |
+| 00EABED2 | 2015-10-05 21:10:31 | Sitting | Stationary | 0.997 | 0.341 | 1.612 | 0 |
+
 The target variable, `activity_context`, is engineered from six cleaned ExtraSensory label columns:
 
 | Activity context | Activity type | Rows | Users | Share of modeling rows |
@@ -27,8 +41,6 @@ The target variable, `activity_context`, is engineered from six cleaned ExtraSen
 | Bicycling | Active | 5,020 | 25 | 1.6% |
 | Running | Active | 1,090 | 26 | 0.4% |
 
-Rows with none of the selected activity labels are excluded from the prediction dataset. In this selected label set, no rows had multiple selected activity labels, so no rows needed to be dropped for target ambiguity.
-
 <iframe
   src="assets/plots/checkpoint_activity_context_distribution.html"
   width="100%"
@@ -37,6 +49,33 @@ Rows with none of the selected activity labels are excluded from the prediction 
 ></iframe>
 
 This distribution shows a major class imbalance: stationary activities, especially sitting and lying down, are much more common than bicycling and running. That imbalance affects both model evaluation and final-model design.
+
+The timestamp-derived hour distribution shows that the modeling rows are spread throughout the day, with the largest hourly count at 9 PM and the smallest at 2 PM.
+
+<iframe
+  src="assets/plots/eda_hour_of_day_distribution.html"
+  width="100%"
+  height="520"
+  frameborder="0"
+></iframe>
+
+The grouped table below summarizes several sensor features by activity context. Active contexts have larger average phone accelerometer and gyroscope variation, which motivates using richer motion features in the final model. Location missingness also varies by activity context, which is examined more formally in the missingness section.
+
+| Activity context | Rows | Users | Mean phone accel | Mean phone gyro std | App active rate | Location missing rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Sitting | 136,356 | 60 | 0.998 | 0.136 | 2.7% | 10.6% |
+| Lying down | 104,210 | 58 | 0.997 | 0.041 | 0.6% | 10.5% |
+| Standing | 37,782 | 60 | 1.005 | 0.267 | 2.6% | 13.5% |
+| Walking | 22,136 | 60 | 1.040 | 0.605 | 2.8% | 16.6% |
+| Bicycling | 5,020 | 25 | 1.032 | 0.400 | 1.1% | 5.1% |
+| Running | 1,090 | 26 | 1.129 | 0.658 | 1.1% | 7.9% |
+
+<iframe
+  src="assets/plots/eda_accelerometer_by_activity.html"
+  width="100%"
+  height="520"
+  frameborder="0"
+></iframe>
 
 ## Assessment of Missingness
 
