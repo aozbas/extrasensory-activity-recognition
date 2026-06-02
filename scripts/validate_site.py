@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 import re
 import sys
@@ -22,8 +23,30 @@ FORBIDDEN_PATTERNS = [
     "Add name(s) here",
 ]
 
+FINAL_INCOMPLETE_PATTERNS = [
+    "This section will be completed for the final project.",
+    "will be completed for the final project",
+    "Current status: this analysis is still pending.",
+    "Current status: the final model has not been trained yet.",
+    "Current status: this analysis is still pending because it should use the final fitted model.",
+    "Planned but not yet run.",
+    "Planned but not yet trained.",
+    "Planned but depends on the final model.",
+]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Validate the public GitHub Pages report.")
+    parser.add_argument(
+        "--final",
+        action="store_true",
+        help="Require final-project sections to be complete.",
+    )
+    return parser.parse_args()
+
 
 def main() -> int:
+    args = parse_args()
     repo_root = Path(__file__).resolve().parents[1]
     readme_path = repo_root / "README.md"
 
@@ -50,6 +73,11 @@ def main() -> int:
 
     if "label:*" not in readme:
         failures.append("README should explicitly state that label:* columns are excluded.")
+
+    if args.final:
+        for pattern in FINAL_INCOMPLETE_PATTERNS:
+            if pattern in readme:
+                failures.append(f"Final-project content still incomplete: {pattern}")
 
     if failures:
         print("Site validation failed:")
