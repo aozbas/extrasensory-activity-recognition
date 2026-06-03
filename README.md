@@ -161,6 +161,8 @@ The baseline model uses six original, leakage-safe features:
 
 The baseline pipeline imputes missing numeric values with the median, standardizes the features, and fits a logistic regression classifier with class balancing. The model uses an 80/20 stratified train/test split.
 
+All 6 baseline features are quantitative. The baseline uses 0 ordinal features and 0 nominal features, so no categorical encoding is needed.
+
 | Metric | Value |
 | --- | ---: |
 | Train rows | 245,275 |
@@ -168,11 +170,55 @@ The baseline pipeline imputes missing numeric values with the median, standardiz
 | Macro F1-score | 0.292 |
 | Balanced accuracy | 0.400 |
 
-This baseline is useful but not strong enough to be the final model. The small feature set struggles to separate some stationary contexts, especially sitting and standing. For the final model, I plan to test richer motion, watch, location, audio, phone-state, and timestamp-derived features.
+This baseline is useful but not strong enough to be the final model. The small feature set struggles to separate some stationary contexts, especially sitting and standing. The final model below expands the feature set while keeping the same held-out test rows, leakage controls, and evaluation metrics.
 
 ## Final Model
 
-This section will be completed for the final project. The final model will add engineered features and tune model hyperparameters while using the same train/test split as the baseline. Candidate improvements include watch accelerometer features, motion frequency and entropy features, location movement features, phone-state indicators, audio features, and timestamp-derived features such as hour of day.
+The final model uses the same 80/20 stratified train/test split as the baseline, reusing the exact baseline train and test row indices. It also keeps all `label:*` columns excluded from the feature set.
+
+I used one `sklearn` pipeline with three stages: engineered feature creation, median imputation, and an extremely randomized trees classifier. This model is a better fit for the activity-recognition task than a purely linear model because it can learn nonlinear thresholds and interactions among motion, watch, location, time, and phone-state signals. ExtraTrees also averages many randomized decision trees, which helps reduce overfitting on the many correlated sensor features. The engineered features are:
+
+| Engineered feature | Description |
+| --- | --- |
+| `has_watch_acceleration` | Whether watch accelerometer features were observed for the row. |
+| `has_location_signal` | Whether `location:log_diameter` was observed for the row. |
+| `phone_motion_intensity` | Row-wise sum of phone accelerometer and gyroscope standard deviation. |
+
+The final model includes 123 total features: 120 original ExtraSensory columns plus the 3 engineered features.
+
+| Source family | Feature count |
+| --- | ---: |
+| Watch accelerometer | 46 |
+| Phone accelerometer | 26 |
+| Phone gyroscope | 26 |
+| Phone state | 11 |
+| Time of day | 8 |
+| Location | 3 |
+| Engineered | 3 |
+
+I tuned the ExtraTrees model with `GridSearchCV`, using 3-fold stratified cross-validation on the training split and macro F1-score as the selection metric. The planned grid was `n_estimators = [200, 400]`, `max_depth = [30, None]`, `min_samples_leaf = [2, 3, 5]`, `max_features = ["sqrt", 0.5]`, and `class_weight = ["balanced_subsample"]`. These control the number of trees, tree depth, leaf size, feature subsampling, and class-imbalance handling. The best hyperparameters were:
+
+| Hyperparameter | Selected value |
+| --- | --- |
+| `n_estimators` | `400` |
+| `max_depth` | `30` |
+| `max_features` | `0.5` |
+| `min_samples_leaf` | `2` |
+| `class_weight` | `balanced_subsample` |
+
+| Metric | Baseline | Final model | Improvement |
+| --- | ---: | ---: | ---: |
+| Macro F1-score | 0.292 | 0.812 | +0.521 |
+| Balanced accuracy | 0.400 | 0.774 | +0.373 |
+
+<iframe
+  src="assets/plots/final_model_baseline_comparison.html"
+  width="100%"
+  height="520"
+  frameborder="0"
+></iframe>
+
+The final model is a clear improvement over the baseline. The richer motion, watch, time, phone-state, and location features give the model more information about each one-minute window, while the engineered availability features make missing sensor signals explicit. The ExtraTrees model also captures nonlinear combinations of those signals, such as large phone motion together with observed watch acceleration. The final model improves every activity class compared with the earlier baseline and remains reproducible and leakage-safe.
 
 ## Fairness Analysis
 
