@@ -196,7 +196,7 @@ The final model includes 123 total features: 120 original ExtraSensory columns p
 | Location | 3 |
 | Engineered | 3 |
 
-I tuned the ExtraTrees model with `GridSearchCV`, using 3-fold stratified cross-validation on the training split and macro F1-score as the selection metric. The planned grid was `n_estimators = [200, 400]`, `max_depth = [30, None]`, `min_samples_leaf = [2, 3, 5]`, `max_features = ["sqrt", 0.5]`, and `class_weight = ["balanced_subsample"]`. These control the number of trees, tree depth, leaf size, feature subsampling, and class-imbalance handling. The best hyperparameters were:
+I tuned the ExtraTrees model with `GridSearchCV`, using 3-fold stratified cross-validation on the training split and macro F1-score as the selection metric. The search grid was `n_estimators = [200, 400]`, `max_depth = [30, None]`, `min_samples_leaf = [2, 3, 5]`, `max_features = ["sqrt", 0.5]`, and `class_weight = ["balanced_subsample"]`. These control the number of trees, tree depth, leaf size, feature subsampling, and class-imbalance handling. The best hyperparameters were:
 
 | Hyperparameter | Selected value |
 | --- | --- |
@@ -222,4 +222,32 @@ The final model is a clear improvement over the baseline. The richer motion, wat
 
 ## Fairness Analysis
 
-This section will be completed for the final project. The fairness analysis will compare model performance across two meaningful user or context groups using a permutation test and the final fitted model.
+I evaluated whether the final fitted model performs worse when watch accelerometer data are unavailable. This is a meaningful sensor-coverage group because the final model uses watch accelerometer features and an engineered watch-availability indicator. The model was not retrained during this analysis; I used the fixed final model predictions on the held-out test set.
+
+The two groups were:
+
+| Group | Definition | Test rows | Macro F1-score |
+| --- | --- | ---: | ---: |
+| Group X: no watch signal | `watch_acceleration:magnitude_stats:mean` is missing | 19,294 | 0.835 |
+| Group Y: watch signal present | `watch_acceleration:magnitude_stats:mean` is observed | 42,025 | 0.800 |
+
+I used macro F1-score as the fairness metric because the prediction problem is multiclass and class-imbalanced. The test statistic was:
+
+**macro F1 for Group Y minus macro F1 for Group X**
+
+Large positive values would mean the model performs worse for rows without watch signal.
+
+**Null hypothesis:** The final model performs equally well for rows with and without watch accelerometer signal; any observed difference is due to random group assignment.
+
+**Alternative hypothesis:** The final model performs worse for rows without watch accelerometer signal.
+
+Using a significance level of 0.05, I ran a one-sided permutation test with 1,000 shuffled group assignments. The observed test statistic was -0.035, and the p-value was 1.000.
+
+<iframe
+  src="assets/plots/fairness_watch_signal_permutation_test.html"
+  width="100%"
+  height="520"
+  frameborder="0"
+></iframe>
+
+Because the p-value is much larger than 0.05, I fail to reject the null hypothesis. In this held-out test set, there is no evidence that the final model performs worse when watch accelerometer signal is unavailable. The observed result actually goes in the opposite direction: macro F1-score is slightly higher for the no-watch group. This does not prove the model is fair for every sensor-coverage pattern or user group, but it addresses the chosen watch-availability comparison.
