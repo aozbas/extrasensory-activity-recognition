@@ -20,4 +20,4 @@ jobs:
           python-version: "3.12"
 
       - name: Validate public site files
-        run: python scripts/validate_site.py
+        run: python scripts/validate_site.py --final

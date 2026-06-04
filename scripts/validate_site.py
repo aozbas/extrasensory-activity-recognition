@@ -4,7 +4,7 @@ import re
 import sys
 
 
-REQUIRED_HEADINGS = [
+SITE_HEADINGS = [
     "## Introduction",
     "## Data Cleaning and Exploratory Data Analysis",
     "## Assessment of Missingness",
@@ -15,7 +15,7 @@ REQUIRED_HEADINGS = [
     "## Fairness Analysis",
 ]
 
-FORBIDDEN_PATTERNS = [
+PLACEHOLDERS = [
     "Content coming after",
     "TODO",
     "TBD",
@@ -23,7 +23,7 @@ FORBIDDEN_PATTERNS = [
     "Add name(s) here",
 ]
 
-FINAL_INCOMPLETE_PATTERNS = [
+FINAL_PLACEHOLDERS = [
     "This section will be completed for the final project.",
     "will be completed for the final project",
     "Current status: this analysis is still pending.",
@@ -35,58 +35,53 @@ FINAL_INCOMPLETE_PATTERNS = [
 ]
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the public GitHub Pages report.")
-    parser.add_argument(
-        "--final",
-        action="store_true",
-        help="Require final-project sections to be complete.",
-    )
+def get_args():
+    parser = argparse.ArgumentParser(description="Check the project website.")
+    parser.add_argument("--final", action="store_true")
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
-    repo_root = Path(__file__).resolve().parents[1]
-    readme_path = repo_root / "README.md"
+def main():
+    args = get_args()
+    repo = Path(__file__).resolve().parents[1]
+    readme_path = repo / "README.md"
+    errors = []
 
     if not readme_path.exists():
         print("README.md is missing.")
         return 1
 
     readme = readme_path.read_text(encoding="utf-8")
-    failures = []
 
-    for heading in REQUIRED_HEADINGS:
+    for heading in SITE_HEADINGS:
         if heading not in readme:
-            failures.append(f"Missing required heading: {heading}")
+            errors.append(f"Missing required heading: {heading}")
 
-    for pattern in FORBIDDEN_PATTERNS:
-        if pattern in readme:
-            failures.append(f"Found unfinished placeholder text: {pattern}")
+    for text in PLACEHOLDERS:
+        if text in readme:
+            errors.append(f"Found unfinished placeholder text: {text}")
+
+    if args.final:
+        for text in FINAL_PLACEHOLDERS:
+            if text in readme:
+                errors.append(f"Final-project content still incomplete: {text}")
+
+    if "label:*" not in readme:
+        errors.append("README should explicitly state that label:* columns are excluded.")
 
     iframe_sources = re.findall(r'<iframe[^>]+src="([^"]+)"', readme)
     for source in iframe_sources:
-        asset_path = repo_root / source
-        if not asset_path.exists():
-            failures.append(f"Missing iframe asset: {source}")
+        if not (repo / source).exists():
+            errors.append(f"Missing iframe asset: {source}")
 
-    if "label:*" not in readme:
-        failures.append("README should explicitly state that label:* columns are excluded.")
-
-    if args.final:
-        for pattern in FINAL_INCOMPLETE_PATTERNS:
-            if pattern in readme:
-                failures.append(f"Final-project content still incomplete: {pattern}")
-
-    if failures:
+    if errors:
         print("Site validation failed:")
-        for failure in failures:
-            print(f"- {failure}")
+        for error in errors:
+            print(f"- {error}")
         return 1
 
     print("Site validation passed.")
-    print(f"Checked {len(REQUIRED_HEADINGS)} required headings and {len(iframe_sources)} iframe assets.")
+    print(f"Checked {len(SITE_HEADINGS)} required headings and {len(iframe_sources)} iframe assets.")
     return 0
 
 
