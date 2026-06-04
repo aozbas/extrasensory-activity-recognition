@@ -51,7 +51,7 @@ The target variable, `activity_context`, is engineered from six cleaned ExtraSen
 | Running | Active | 1,090 | 26 | 0.4% |
 
 <iframe
-  src="assets/plots/checkpoint_activity_context_distribution.html"
+  src="assets/plots/activity_context_distribution.html"
   width="100%"
   height="520"
   frameborder="0"
@@ -139,7 +139,7 @@ A one-sided permutation test was used with 1,000 permutations and a significance
 | p-value | 0.0010 |
 
 <iframe
-  src="assets/plots/checkpoint2_accelerometer_permutation_test.html"
+  src="assets/plots/accelerometer_permutation_test.html"
   width="100%"
   height="520"
   frameborder="0"
