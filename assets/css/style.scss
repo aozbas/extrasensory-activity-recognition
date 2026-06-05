@@ -1,0 +1,82 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+.page-header {
+  padding: 1.25rem 2rem;
+  text-align: right;
+}
+
+.page-header .project-name,
+.page-header .project-tagline {
+  display: none;
+}
+
+.page-header .btn {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+.main-content h1 {
+  color: #159957;
+  font-size: 2.4rem;
+  margin-top: 0.5rem;
+}
+
+.main-content h1 + p em {
+  color: #57636f;
+  font-size: 1.15rem;
+  font-style: italic;
+}
+
+.main-content h2 {
+  color: #159957;
+  border-bottom: 1px solid #dce6f0;
+  padding-bottom: 0.35rem;
+}
+
+.main-content h3 {
+  color: #159957;
+}
+
+/* Tables. */
+.main-content table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.main-content th,
+.main-content td {
+  border: 1px solid #dce6f0;
+  padding: 0.55rem 0.75rem;
+}
+
+.main-content th {
+  background: #f3f7fb;
+}
+
+.main-content tr:nth-child(even) td {
+  background: #fbfdff;
+}
+
+/* Plotly iframes. */
+.main-content iframe {
+  width: 100%;
+  border: 1px solid #dce6f0;
+  border-radius: 4px;
+  background: #fff;
+}
+
+@media (max-width: 700px) {
+  .page-header {
+    padding: 1rem;
+  }
+
+  .main-content h1 {
+    font-size: 1.9rem;
+  }
+}
